@@ -1,22 +1,3 @@
-<!--
-
-     Physical simulation of a 2D blob polygon via Verlet integration
-     in HTML5 Canvas
-     based on "Advanced Character Physics" by Jacobsen (2003)
-     http://www.gotoandplay.it/_articles/2005/08/advCharPhysics.php
-     http://www.gamasutra.com/resource_guide/20030121/jacobson_pfv.htm
-     
-     @author odestcj / https://github.com/odestcj
-
-     Forgive my coding style.  I am still a typedef struct kind of guy
-     with a noticeable disregard for proper scoping
-
--->
-
-<html>
-
-<script>
-
 init();  // simulation initialization
 animate();  // simulation animation loop
 
@@ -255,11 +236,3 @@ function matrix_transpose(m) {
 }
 
 
-
-</script>
-
-<body>
-<div id="output"></div>
-<canvas id="myCanvas" width="400" height="400"></canvas>
-</body>
-</html>

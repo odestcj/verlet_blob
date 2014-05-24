@@ -1,0 +1,8 @@
+---
+ name: Physical simulation of a 2D blob polygon by Verlet integration
+ description: Physical simulation of a 2D blob polygon by Verlet integration based on "Advanced Character Physics" by Jacobsen (2003) http://www.gotoandplay.it/_articles/2005/08/advCharPhysics.php
+ authors:
+   - odestcj / https://github.com/odestcj
+ resources:
+ normalize_css: no
+...
