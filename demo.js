@@ -90,6 +90,9 @@ function init() {
     // only gravity acts on object in this example
     a = gravity;
 
+    // set ground elevation for collision test    
+    ground_elevation = -2;
+
     // initialize time and timestep
     t = 0;
     dt = 0.5;
@@ -129,9 +132,9 @@ function update() {
             x[links[i].a][1] += dy*0.5*diff;
         }
 
-        // update for ground plane constraint
+        // update for ground plane collision constraint
         for (i=0;i<x.length;i++) {
-            x[i][1] = Math.max(x[i][1],-5);
+            x[i][1] = Math.max(x[i][1],ground_elevation);
         }
         
     }
@@ -150,8 +153,8 @@ function draw() {
     // draw ground plane
     ctx.fillStyle = "#BBBBBB";
     ctx.beginPath();
-    ctx.moveTo(0,200-(-5)*10);
-    ctx.lineTo(c.width,200-(-5)*10);
+    ctx.moveTo(0,200-ground_elevation*10);
+    ctx.lineTo(c.width,200-ground_elevation*10);
     ctx.lineTo(c.width,c.height);
     ctx.lineTo(0,c.height);
     ctx.closePath();
@@ -165,7 +168,7 @@ function draw() {
     ctx.fillStyle = "#FF0000";
     ctx.strokeStyle = "#000000";
 
-    // draw ounter clockwise faces
+    // draw counter clockwise faces
     ctx.beginPath();
     ctx.moveTo(200+x[0][0]*10,200-x[0][1]*10);
     for (var i=1;i<x.length;i++)
