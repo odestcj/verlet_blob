@@ -1,7 +1,26 @@
+/*
+/    Physical simulation of a 2D blob polygon via Verlet integration
+/    in HTML5 Canvas
+/    based on "Advanced Character Physics" by Jacobsen (2003)
+/    http://www.gotoandplay.it/_articles/2005/08/advCharPhysics.php
+/    http://www.gamasutra.com/resource_guide/20030121/jacobson_pfv.htm
+/    
+/    @author odestcj / https://github.com/odestcj
+/
+/    Forgive my coding style.  I am still a typedef struct kind of guy
+/    with a noticeable disregard for proper scoping
+*/
+
+
 init();  // simulation initialization
 animate();  // simulation animation loop
 
 function init() {
+
+    // resize canvas to window
+    var canvas = document.getElementById("myCanvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     /* triangle
     x = [[0,0],[5,0],[2.5,2.5]];
@@ -43,6 +62,14 @@ function init() {
     links[7] = {a:2,b:5,kp:0.01};
     links[8] = {a:3,b:5,kp:0.01};
     links[9] = {a:4,b:5,kp:0.01};
+
+    /* add more internal support
+    */
+    links[10] = {a:0,b:2,kp:0.1};
+    links[11] = {a:1,b:3,kp:0.1};
+    links[12] = {a:2,b:4,kp:0.1};
+    links[13] = {a:0,b:3,kp:0.1};
+    links[14] = {a:1,b:4,kp:0.1};
 
     /* octogon (with JGR!)
     x = [[-1,3],[-2,2],[-2,1],[-1,0],[1,0],[2,1],[2,2],[1,3],[0,1.5]];
@@ -87,15 +114,41 @@ function init() {
     // define gravitational force
     gravity = [0,-0.1];  // light gravity
     
-    // only gravity acts on object in this example
-    a = gravity;
+    // as a default, assume only gravity acts on object in this example
+    a = gravity.slice();
+
+    // external force applied by the user
+    user_force = [0,0]; 
 
     // set ground elevation for collision test    
-    ground_elevation = -2;
+    ground_elevation = -5;
 
     // initialize time and timestep
     t = 0;
     dt = 0.5;
+
+    // set variables and user interface controls for grabbing spring with mouse
+    mouseDown = 0; // is the mouse button pressed? 0=no 1=yes
+    mouse_x = 0;  // location of the mouse cursor horizontally
+    mouse_y = 0;  // location of the mouse cursor vertically
+
+    // set functions for drawing canvas to handle mouse events...
+    
+    // when the mouse moves, update the mouse's location
+    canvas.onmousemove = function handleMouseMove(event) {
+        mouse_x = event.clientX;
+        mouse_y = event.clientY;
+    };
+
+    // when the mouse button is pressed, update mouseDown
+    canvas.onmousedown = function() { 
+        mouseDown = 1; 
+    };
+
+    // when the mouse button is released, update mouseDown
+    canvas.onmouseup = function() {
+        mouseDown = 0;
+    };   
 }
 
 function animate() {
@@ -107,8 +160,14 @@ function animate() {
 
 function update() {
 
+    var i;
+    // accumulate forces acting on vertices
+    for (i=0;i<a.length;i++) {
+        a[i] = gravity[i] + user_force[i];
+    }
+
     // verlet integration of each point with unit mass and no friction
-    for (var i=0;i<x.length;i++) {
+    for (i=0;i<x.length;i++) {
         for (j=0;j<x[0].length;j++) {
             next_x[i][j] = 2*x[i][j]-prev_x[i][j]+a[j]*dt*dt;
             prev_x[i][j] = x[i][j];
@@ -137,8 +196,24 @@ function update() {
             x[i][1] = Math.max(x[i][1],ground_elevation);
         }
         
+        var c = document.getElementById("myCanvas");
+        if (mouseDown) {
+            x[0][0] = (mouse_x-c.width/2)/10;//c.width/2+
+            x[0][1] = -(mouse_y-c.height/2)/10;//+c.height/2;
+            //x[x.length-1][0] = mouse_x;
+            //x[x.length-1][1] = mouse_y;
+        }
+
     }
 
+/*
+    // add upward force if mouse is presssed
+    user_force = [0,0];       
+    if (mouseDown)
+        user_force = [0,0.5];       
+    console.log(mouseDown+" "+user_force[1].toFixed(2)+" "+a[0].toFixed(2)+" "+a[1].toFixed(2));
+    //console.log(x[0][0]+" "+x[0][1]);
+*/
 }
 
 function draw() {
@@ -153,8 +228,8 @@ function draw() {
     // draw ground plane
     ctx.fillStyle = "#BBBBBB";
     ctx.beginPath();
-    ctx.moveTo(0,200-ground_elevation*10);
-    ctx.lineTo(c.width,200-ground_elevation*10);
+    ctx.moveTo(0,c.height/2-ground_elevation*10);
+    ctx.lineTo(c.width,c.height/2-ground_elevation*10);
     ctx.lineTo(c.width,c.height);
     ctx.lineTo(0,c.height);
     ctx.closePath();
@@ -170,25 +245,25 @@ function draw() {
 
     // draw counter clockwise faces
     ctx.beginPath();
-    ctx.moveTo(200+x[0][0]*10,200-x[0][1]*10);
+    ctx.moveTo(c.width/2+x[0][0]*10,c.height/2-x[0][1]*10);
     for (var i=1;i<x.length;i++)
-        ctx.lineTo(200+x[i][0]*10,200-x[i][1]*10);
+        ctx.lineTo(c.width/2+x[i][0]*10,c.height/2-x[i][1]*10);
     ctx.closePath();
     ctx.fill();
 
     // draw last face
     ctx.beginPath();
-    ctx.moveTo(200+x[x.length-2][0]*10,200-x[x.length-2][1]*10);
-    ctx.lineTo(200+x[x.length-1][0]*10,200-x[x.length-1][1]*10);
-    ctx.lineTo(200+x[0][0]*10,200-x[0][1]*10);
+    ctx.moveTo(c.width/2+x[x.length-2][0]*10,c.height/2-x[x.length-2][1]*10);
+    ctx.lineTo(c.width/2+x[x.length-1][0]*10,c.height/2-x[x.length-1][1]*10);
+    ctx.lineTo(c.width/2+x[0][0]*10,c.height/2-x[0][1]*10);
     ctx.closePath();
     ctx.fill();
 
     // draw link constraints
     ctx.beginPath();
     for (var i=0;i<links.length;i++) {
-        ctx.moveTo(200+x[links[i].a][0]*10,200-x[links[i].a][1]*10);
-        ctx.lineTo(200+x[links[i].b][0]*10,200-x[links[i].b][1]*10);
+        ctx.moveTo(c.width/2+x[links[i].a][0]*10,c.height/2-x[links[i].a][1]*10);
+        ctx.lineTo(c.width/2+x[links[i].b][0]*10,c.height/2-x[links[i].b][1]*10);
     }
     ctx.closePath();
     ctx.stroke();
